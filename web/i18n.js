@@ -206,7 +206,7 @@
   "设置提示已复制": "Setup prompt copied",
   "设置题库：": "Set up bank: ",
   "试卷题号": "Paper question map",
-  "请先确认考试范围、题量、题型、语言、时长和评分；更新 bank.json 与 questions.json，生成可导入的题库 JSON 包。": "Confirm scope, question counts, types, languages, duration and scoring. Update bank.json and questions.json and export an importable JSON package.",
+  "请先确认题库覆盖范围、题库题量、题型和题目／解析语言；更新 bank.json 与 questions.json，生成可导入的题库 JSON 包。仅准备可复用题目，考试由我在应用内选择范围、题型、题量、分值和时长后生成。": "Confirm bank coverage, bank question counts, types, and question/explanation languages. Update bank.json and questions.json and export an importable JSON package. Prepare reusable questions only; I will select exam scope, types, counts, points and duration in the app before generating a paper.",
   "请先选择题库 JSON 包。": "Choose a bank JSON package first.",
   "读取我指定的课程材料": "read my selected course materials",
   "返回": "Back",

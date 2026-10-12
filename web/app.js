@@ -113,7 +113,7 @@
     if(state.examSession&&!state.examSession.submittedAt&&state.examSession.deadline<=Date.now()){L.finalizeExam(state,data.bank.mastery);save();if(route.name==='exam')route={name:'results',id:state.examSession.id};}
     history[replace?'replaceState':'pushState']({bankKey:key,route},'',`?bank=${key}`);render();
   }
-  function builderPrompt(){return `${t("使用 question")}-bank-builder skill，${t("读取我指定的课程材料")}（PDF、PPT/PPTX、Word、Markdown ${t("或 Jupyter")}），${t("设置题库：")}${data.bank.name}。\n${t("目标文件夹：")}${data.path}\n${t("请先确认考试范围、题量、题型、语言、时长和评分；更新 bank.json 与 questions.json，生成可导入的题库 JSON 包。")}\n${t("保留题目稳定 ID，不改动 records/；逐题核查答案与材料来源定位。")}`;} 
+  function builderPrompt(){return `${t("使用 question")}-bank-builder skill，${t("读取我指定的课程材料")}（PDF、PPT/PPTX、Word、Markdown ${t("或 Jupyter")}），${t("设置题库：")}${data.bank.name}。\n${t("目标文件夹：")}${data.path}\n${t("请先确认题库覆盖范围、题库题量、题型和题目／解析语言；更新 bank.json 与 questions.json，生成可导入的题库 JSON 包。仅准备可复用题目，考试由我在应用内选择范围、题型、题量、分值和时长后生成。")}\n${t("保留题目稳定 ID，不改动 records/；逐题核查答案与材料来源定位。")}`;}
   function renderHome(){
     const wrong=Object.values(state.masteryById).filter(r=>r.inWrongSet).length,prone=Object.values(state.masteryById).filter(r=>r.errorProne).length;
     const practiced=new Set(Object.values(state.practiceSessionsByKey).flatMap(s=>Object.keys(s.answered||{}))).size;
