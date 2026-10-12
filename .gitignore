@@ -1,0 +1,57 @@
+# Local data and private course banks (public examples are retained)
+data/
+banks/
+exports/
+materials/
+screenshots/
+# Raw course documents
+*.pdf
+*.ppt
+*.pptx
+*.doc
+*.docx
+*.ipynb
+sources/
+records/
+bank.json
+questions.json
+progress.json
+*-progress.json
+*-bank.json
+# Development artifacts and environments
+.superpowers/
+docs/superpowers/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.venv/
+venv/
+node_modules/
+coverage/
+build/
+dist/
+*.egg-info/
+playwright-report/
+test-results/
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+# Local credentials and editor configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.idea/
+.vscode/

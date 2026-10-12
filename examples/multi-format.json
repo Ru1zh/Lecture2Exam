@@ -1,0 +1,311 @@
+{
+  "bank": {
+    "schemaVersion": 1,
+    "id": "multi-format-demo",
+    "name": "多格式示例",
+    "course": "DEMO",
+    "description": "8 道演示题，用于展示材料定位与练习流程；来源名称和位置为示意，不代表已核查真实材料。",
+    "groups": [
+      {
+        "id": "g0",
+        "label": "PDF 示例"
+      },
+      {
+        "id": "g1",
+        "label": "PPTX 示例"
+      },
+      {
+        "id": "g2",
+        "label": "DOCX 示例"
+      },
+      {
+        "id": "g3",
+        "label": "IPYNB 示例"
+      }
+    ],
+    "sources": [
+      {
+        "id": "s0",
+        "file": "demo.pdf",
+        "kind": "pdf",
+        "groupId": "g0",
+        "order": 1,
+        "examEligible": true
+      },
+      {
+        "id": "s1",
+        "file": "demo.pptx",
+        "kind": "pptx",
+        "groupId": "g1",
+        "order": 2,
+        "examEligible": true
+      },
+      {
+        "id": "s2",
+        "file": "demo.docx",
+        "kind": "docx",
+        "groupId": "g2",
+        "order": 3,
+        "examEligible": true
+      },
+      {
+        "id": "s3",
+        "file": "demo.ipynb",
+        "kind": "ipynb",
+        "groupId": "g3",
+        "order": 4,
+        "examEligible": true
+      }
+    ],
+    "mastery": {
+      "wrongThreshold": 3,
+      "correctStreak": 2
+    },
+    "exam": {
+      "durationMinutes": 5,
+      "sampling": "balanced",
+      "sections": [
+        {
+          "type": "mcq",
+          "count": 2,
+          "points": 2
+        },
+        {
+          "type": "multi",
+          "count": 1,
+          "points": 3
+        },
+        {
+          "type": "tf",
+          "count": 2,
+          "points": 1
+        }
+      ],
+      "coverage": []
+    }
+  },
+  "questions": [
+    {
+      "id": "demo-m0",
+      "type": "mcq",
+      "sourceId": "s0",
+      "locator": {
+        "kind": "page",
+        "value": "1"
+      },
+      "prompt": "Which statistic describes the center of a sample?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Sample mean"
+        },
+        {
+          "id": "b",
+          "text": "Sample identifier"
+        },
+        {
+          "id": "c",
+          "text": "Filename"
+        },
+        {
+          "id": "d",
+          "text": "Number of columns only"
+        }
+      ],
+      "answerId": "a",
+      "explanationZh": "该演示题用于展示题库格式和材料来源位置；实际出题必须核查原始材料。",
+      "knowledgeZh": "Sample mean"
+    },
+    {
+      "id": "demo-t0",
+      "type": "tf",
+      "sourceId": "s0",
+      "locator": {
+        "kind": "page",
+        "value": "2"
+      },
+      "prompt": "A saved historical paper should keep its original question text after the bank is edited.",
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "answerId": "true",
+      "explanationZh": "历史试卷保存题目快照，因此题库更新不会改写当时的试卷。",
+      "knowledgeZh": "历史试卷快照"
+    },
+    {
+      "id": "demo-m1",
+      "type": "mcq",
+      "sourceId": "s1",
+      "locator": {
+        "kind": "slide",
+        "value": "1"
+      },
+      "prompt": "Which quantity is the square of the sample standard deviation?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Sample variance"
+        },
+        {
+          "id": "b",
+          "text": "Sample identifier"
+        },
+        {
+          "id": "c",
+          "text": "Filename"
+        },
+        {
+          "id": "d",
+          "text": "Number of columns only"
+        }
+      ],
+      "answerId": "a",
+      "explanationZh": "该演示题用于展示题库格式和材料来源位置；实际出题必须核查原始材料。",
+      "knowledgeZh": "Sample variance"
+    },
+    {
+      "id": "demo-t1",
+      "type": "tf",
+      "sourceId": "s1",
+      "locator": {
+        "kind": "slide",
+        "value": "2"
+      },
+      "prompt": "A saved historical paper should keep its original question text after the bank is edited.",
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "answerId": "true",
+      "explanationZh": "历史试卷保存题目快照，因此题库更新不会改写当时的试卷。",
+      "knowledgeZh": "历史试卷快照"
+    },
+    {
+      "id": "demo-multi2",
+      "type": "multi",
+      "sourceId": "s2",
+      "locator": {
+        "kind": "section",
+        "value": "示例章节"
+      },
+      "prompt": "Which items can be stored in a local question-bank folder? Select all that apply.",
+      "options": [
+        {
+          "id": "a",
+          "text": "Questions and explanations"
+        },
+        {
+          "id": "b",
+          "text": "A required remote database service"
+        },
+        {
+          "id": "c",
+          "text": "Practice and exam records"
+        },
+        {
+          "id": "d",
+          "text": "A required model API key"
+        }
+      ],
+      "explanationZh": "题库保存题目及本地做题记录；使用应用不需要远程数据库或模型 API。",
+      "knowledgeZh": "本地题库结构",
+      "answerIds": [
+        "a",
+        "c"
+      ]
+    },
+    {
+      "id": "demo-t2",
+      "type": "tf",
+      "sourceId": "s2",
+      "locator": {
+        "kind": "section",
+        "value": "示例章节"
+      },
+      "prompt": "A saved historical paper should keep its original question text after the bank is edited.",
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "answerId": "true",
+      "explanationZh": "历史试卷保存题目快照，因此题库更新不会改写当时的试卷。",
+      "knowledgeZh": "历史试卷快照"
+    },
+    {
+      "id": "demo-multi3",
+      "type": "multi",
+      "sourceId": "s3",
+      "locator": {
+        "kind": "cell",
+        "value": "1"
+      },
+      "prompt": "Which items can be stored in a local question-bank folder? Select all that apply.",
+      "options": [
+        {
+          "id": "a",
+          "text": "Questions and explanations"
+        },
+        {
+          "id": "b",
+          "text": "A required remote database service"
+        },
+        {
+          "id": "c",
+          "text": "Practice and exam records"
+        },
+        {
+          "id": "d",
+          "text": "A required model API key"
+        }
+      ],
+      "explanationZh": "题库保存题目及本地做题记录；使用应用不需要远程数据库或模型 API。",
+      "knowledgeZh": "本地题库结构",
+      "answerIds": [
+        "a",
+        "c"
+      ]
+    },
+    {
+      "id": "demo-t3",
+      "type": "tf",
+      "sourceId": "s3",
+      "locator": {
+        "kind": "cell",
+        "value": "2"
+      },
+      "prompt": "A saved historical paper should keep its original question text after the bank is edited.",
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "answerId": "true",
+      "explanationZh": "历史试卷保存题目快照，因此题库更新不会改写当时的试卷。",
+      "knowledgeZh": "历史试卷快照"
+    }
+  ]
+}
