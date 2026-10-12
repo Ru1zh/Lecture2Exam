@@ -39,6 +39,54 @@ class StoreTests(unittest.TestCase):
     def imported(self, name='course'):
         return self.store.import_bank(str(self.root / name), bundle())['key']
 
+    def test_rename_updates_name_without_changing_identity_or_records(self):
+        key = self.imported()
+        loaded = self.store.load(key)
+        before = (self.root / 'course' / 'records' / 'progress.json').read_bytes()
+        questions = (self.root / 'course' / 'questions.json').read_bytes()
+        renamed = self.store.rename(key, '  New course 中文  ', loaded['bankRevision'])
+        self.assertEqual(renamed['bank']['name'], 'New course 中文')
+        self.assertEqual(renamed['key'], key)
+        self.assertEqual(renamed['path'], loaded['path'])
+        self.assertEqual(renamed['bank']['id'], loaded['bank']['id'])
+        self.assertEqual(renamed['revision'], loaded['revision'])
+        self.assertEqual((self.root / 'course' / 'records' / 'progress.json').read_bytes(), before)
+        self.assertEqual((self.root / 'course' / 'questions.json').read_bytes(), questions)
+        self.assertEqual(BankStore(self.root / 'app-data').list()[0]['name'], 'New course 中文')
+        self.assertNotEqual(renamed['bankRevision'], loaded['bankRevision'])
+        with self.assertRaises(AppError):
+            self.store.save(key, loaded['revision'], loaded['state'], loaded['bankRevision'])
+        renamed['state']['favoriteIds'] = ['q1']
+        self.store.save(key, renamed['revision'], renamed['state'], renamed['bankRevision'])
+        self.assertEqual(self.store.load(key)['state']['favoriteIds'], ['q1'])
+
+    def test_rename_rejects_invalid_names_and_stale_bank_versions(self):
+        key = self.imported()
+        loaded = self.store.load(key)
+        before = (self.root / 'course' / 'bank.json').read_bytes()
+        for name in ['', '   ', None, 123, 'x' * 201]:
+            with self.subTest(name=name), self.assertRaises(AppError):
+                self.store.rename(key, name, loaded['bankRevision'])
+        self.assertEqual((self.root / 'course' / 'bank.json').read_bytes(), before)
+        with self.assertRaises(AppError) as ctx:
+            self.store.rename(key, 'New', 'stale')
+        self.assertEqual(ctx.exception.status, 409)
+        self.assertEqual((self.root / 'course' / 'bank.json').read_bytes(), before)
+
+    def test_failed_rename_registry_write_rolls_back_bank_name(self):
+        key = self.imported()
+        loaded = self.store.load(key)
+        before = (self.root / 'course' / 'bank.json').read_bytes()
+        original_write = bank_store.atomic_write
+        def fail_registry(path, *args, **kwargs):
+            if path == self.store.registry_path:
+                raise OSError('registry write failed')
+            return original_write(path, *args, **kwargs)
+        with patch('bank_store.atomic_write', side_effect=fail_registry), self.assertRaises(OSError):
+            self.store.rename(key, 'New', loaded['bankRevision'])
+        self.assertEqual((self.root / 'course' / 'bank.json').read_bytes(), before)
+        self.assertEqual(self.store.load(key)['bankRevision'], loaded['bankRevision'])
+
     def test_trash_restore_preserves_files_records_and_rejects_old_tab(self):
         key = self.imported()
         loaded = self.store.load(key)

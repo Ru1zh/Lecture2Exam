@@ -420,6 +420,14 @@ dialog::backdrop { background: rgba(24, 32, 31, 0.66); }
 .settings-group small {margin-top:4px;font-size:11px;line-height:1.5;color:var(--muted);}
 .settings-summary {white-space:pre-line;font-size:14px;line-height:1.8;padding:14px 16px;background:var(--paper);border-radius:3px;}
 .settings-error {color:var(--error);font-size:14px;line-height:1.6;}
+#rename-form label {display:block;margin:24px 0 8px;}
+#rename-name {width:100%;padding:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;}
+#rename-form .dialog-actions {margin-top:24px;}
+.bank-title-row {display:flex;align-items:flex-start;gap:16px;}
+.bank-title-row h1 {min-width:0;overflow-wrap:anywhere;}
+.rename-icon {flex-shrink:0;margin-top:14px;padding:6px;border:0;background:none;color:var(--muted);cursor:pointer;}
+.rename-icon:hover {color:var(--accent);}
+.rename-icon svg {display:block;width:24px;height:24px;}
 .settings-actions {display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:24px;}
 .exam-presets {padding:18px 0;border-bottom:1px solid var(--line);}
 .exam-presets h3 {font-size:20px;}

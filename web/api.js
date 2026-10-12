@@ -12,12 +12,12 @@
   function readDraft(key){try{return JSON.parse(localStorage.getItem(draftKey(key)));}catch(_){return null;}}
   function clearDraft(key){try{localStorage.removeItem(draftKey(key));}catch(_){}}
   class SaveQueue{
-    constructor(data,onStatus){this.key=data.key;this.revision=data.revision;this.bankRevision=data.bankRevision;this.onStatus=onStatus;this.pending=null;this.running=null;this.error=null;}
+    constructor(data,onStatus){this.key=data.key;this.revision=data.revision;this.bankRevision=data.bankRevision;this.onStatus=onStatus;this.pending=null;this.running=null;this.error=null;this.paused=false;}
     draft(state){try{localStorage.setItem(draftKey(this.key),JSON.stringify({revision:this.revision,bankRevision:this.bankRevision,state}));}catch(_){/* disk remains authoritative; the pending in-memory state can be exported */}}
-    save(state){this.pending=JSON.parse(JSON.stringify(state));this.draft(this.pending);this.onStatus('正在保存…');if(!this.running&&!this.error)this.start();}
-    start(){this.running=this.pump().finally(()=>{this.running=null;if(this.pending&&!this.error)this.start();});}
+    save(state){this.pending=JSON.parse(JSON.stringify(state));this.draft(this.pending);this.onStatus('正在保存…');if(!this.running&&!this.error&&!this.paused)this.start();}
+    start(){if(this.paused)return;this.running=this.pump().finally(()=>{this.running=null;if(this.pending&&!this.error&&!this.paused)this.start();});}
     async pump(){
-      while(this.pending&&!this.error){
+      while(this.pending&&!this.error&&!this.paused){
         const snapshot=this.pending;this.pending=null;
         try{
           const saved=await request(`/api/banks/${this.key}/state`,'PUT',{revision:this.revision,bankRevision:this.bankRevision,state:snapshot});
@@ -27,7 +27,9 @@
         }catch(error){this.pending=this.pending||snapshot;this.draft(this.pending);this.error=error;this.onStatus('尚未保存',error);}
       }
     }
-    async flush(){while(this.running)await this.running;if(this.error)throw this.error;}
+    async flush(){while(this.paused||this.running){if(this.paused)await this.resumed;else await this.running;}if(this.error)throw this.error;}
+    async pause(){if(!this.paused){this.paused=true;this.resumed=new Promise(resolve=>this.resolveResume=resolve);}while(this.running)await this.running;if(this.error)throw this.error;}
+    resume(){this.paused=false;if(this.pending){this.draft(this.pending);if(!this.running&&!this.error)this.start();}this.resolveResume?.();this.resolveResume=null;this.resumed=null;}
     async retry(){this.error=null;if(this.pending)this.start();await this.flush();}
     get dirty(){return Boolean(this.pending||this.running||this.error);}
   }

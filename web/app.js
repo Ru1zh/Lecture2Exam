@@ -4,6 +4,8 @@
   const L=window.L2E_LOGIC,H=window.L2E_HISTORY,API=window.L2E_API;
   const app=document.getElementById('app'),notice=document.getElementById('notice'),dialog=document.getElementById('confirm-dialog');
   const settingsDialog=document.getElementById('exam-settings-dialog');
+  const renameDialog=document.getElementById('rename-dialog'),renameForm=document.getElementById('rename-form');
+  let renameSession=null,renameSaving=false,renameRequest=0;
   let settingsFromIntro=false,settingsSaving=false;
   const labels=new Proxy({bank:'顺序练习','bank-shuffled':'乱序练习',source:'分组练习',wrong:'错题练习','error-prone':'易错题训练',favorite:'我的收藏'},{get:(o,k)=>t(o[k])});
   const typeLabels=new Proxy({mcq:'单选题',multi:'多选题',tf:'判断题'},{get:(o,k)=>t(o[k])}), locatorLabels=new Proxy({page:'PDF 第',slide:'幻灯片第',section:'章节',line:'行',cell:'单元格'},{get:(o,k)=>t(o[k])});
@@ -24,7 +26,7 @@
   function header(title,subtitle,back='home'){return `<header class="screen-heading"><div class="screen-heading__copy"><p class="eyebrow">${e(data?.bank.course||'Lecture2Exam')} · STUDY DESK</p><h2>${e(title)}</h2><p>${e(t(subtitle))}</p></div>${button(t('返回'),back)}</header>`;}
   function headingTitle(){return data?.bank.name||'Lecture2Exam';}
   function navigate(name,extra={},replace=false,preserveScroll=false){
-    ++navigationRequest;
+    ++navigationRequest;dismissRename();
     const scroll=window.scrollY;route={name,...extra};
     history[replace?'replaceState':'pushState']({bankKey:data?.key,route},'',data?`?bank=${data.key}`:name==='trash'?'?view=trash':'/');render();
     window.scrollTo(0,preserveScroll?scroll:0);app.focus({preventScroll:true});
@@ -35,10 +37,43 @@
   function ordered(q,order){return (order||q.options.map(o=>o.id)).map(id=>q.options.find(o=>o.id===id)).filter(Boolean);}
   function typeset(){window.renderMathInElement?.(app,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false,trust:false});}
   function dismissExamSettings(){settingsFromIntro=false;if(settingsDialog.open)settingsDialog.close('cancel');}
+  function dismissRename(){++renameRequest;renameSession=null;if(renameDialog.open)renameDialog.close();}
+  async function openRename(key){
+    if(renameSaving)return;
+    const request=navigationRequest,intent=++renameRequest,loaded=data?.key===key?data:await API.request(`/api/banks/${key}`);
+    if(request!==navigationRequest||intent!==renameRequest)return;
+    renameSession={key,bankRevision:loaded.bankRevision,data:data?.key===key?data:null,queue:data?.key===key?queue:null};
+    document.getElementById('rename-name').value=loaded.bank.name;
+    document.getElementById('rename-error').hidden=true;
+    renameDialog.showModal();document.getElementById('rename-name').select();
+  }
+  async function submitRename(event){
+    event.preventDefault();if(renameSaving||!renameSession)return;
+    const session=renameSession,name=document.getElementById('rename-name').value.trim(),error=document.getElementById('rename-error');
+    if(!name){error.textContent=t('题库名称不能为空。');error.hidden=false;return;}
+    renameSaving=true;renameForm.querySelectorAll('button,input').forEach(el=>el.disabled=true);error.hidden=true;
+    try{
+      if(session.queue)await session.queue.pause();
+      const renamed=await API.request(`/api/banks/${session.key}/rename`,'POST',{name,bankRevision:session.bankRevision});
+      if(session.queue)session.queue.bankRevision=renamed.bankRevision;
+      if(session.data){session.data.bank=renamed.bank;session.data.bankRevision=renamed.bankRevision;}
+      if(data===session.data&&data){document.title=`${headingTitle()} · Lecture2Exam`;document.getElementById('active-bank-name').textContent=headingTitle();}
+      const entry=banks.find(bank=>bank.key===session.key);if(entry)entry.name=renamed.bank.name;
+      if(renameSession===session){dismissRename();notice.hidden=true;
+        if(data===session.data&&data)renderKeepScroll();
+        else if(route.name==='manager')renderRecentBanks();
+        tell(t('题库名称已更新。'));
+      }
+    }catch(exc){if(renameSession===session&&renameDialog.open){error.textContent=exc.message;error.hidden=false;}}
+    finally{if(session.queue)session.queue.resume();renameSaving=false;renameForm.querySelectorAll('button,input').forEach(el=>el.disabled=false);}
+  }
+  renameForm.addEventListener('submit',submitRename);
+  renameDialog.addEventListener('cancel',event=>{if(renameSaving)event.preventDefault();else dismissRename();});
 
   async function manager(push=true){
     const request=++navigationRequest;
     dismissExamSettings();
+    dismissRename();
     await flush();if(request!==navigationRequest)return false;multiDraft.clear();data=null;state=null;queue=null;questions=[];byId=new Map();formMode=null;importBundle=null;unsavedDraft=null;route={name:'manager'};bankSearch='';
     notice.hidden=true;status('');document.title='Lecture2Exam';document.getElementById('active-bank-name').textContent='';document.getElementById('active-bank-name').hidden=true;document.getElementById('switch-bank').hidden=true;
     const result=await API.request('/api/banks');if(request!==navigationRequest)return false;banks=result.banks;
@@ -56,7 +91,7 @@
     const query=bankSearch.trim().toLowerCase(),visible=banks.filter(bank=>bank.name.toLowerCase().includes(query));
     host.innerHTML=visible.length?visible.map(b=>{
       const summary=b.statsAvailable?(I.language==='en'?`${b.questionCount} questions · ${b.practicedCount} practiced · ${b.examCount} exams`:`共 ${b.questionCount} 题 · 已练习 ${b.practicedCount} 题 · ${b.examCount} 次考试记录`):(I.language==='en'?'Statistics unavailable; check the bank folder.':'统计暂不可用，请检查题库文件夹。');
-      return `<article class="bank-entry"><div class="bank-entry__copy"><h3>${e(b.name)}</h3><p class="bank-path">${e(b.course)}</p><p class="bank-summary">${e(summary)}</p></div><div class="form-actions">${button(t('打开'),'open-bank',`data-key="${b.key}" aria-label="${t("打开 ")}${e(b.name)}"`,true)}${button(t('删除'),'delete-bank',`data-key="${b.key}" aria-label="${t("删除 ")}${e(b.name)}"`)}</div></article>`;
+      return `<article class="bank-entry"><div class="bank-entry__copy"><h3>${e(b.name)}</h3><p class="bank-path">${e(b.course)}</p><p class="bank-summary">${e(summary)}</p></div><div class="form-actions">${button(t('打开'),'open-bank',`data-key="${b.key}" aria-label="${t("打开 ")}${e(b.name)}"`,true)}${button(t('重命名'),'rename-bank',`data-key="${b.key}" aria-label="${t('重命名 ')}${e(b.name)}"`)}${button(t('删除'),'delete-bank',`data-key="${b.key}" aria-label="${t("删除 ")}${e(b.name)}"`)}</div></article>`;
     }).join(''):banks.length?`<p>${I.language==='en'?'No matching banks.':'没有匹配的题库。'}</p>`:t('<p>还没有题库。先创建一个题库，或打开准备好的题库文件夹。</p>');
   }
   async function openTrash(replace=false){
@@ -97,6 +132,7 @@
   async function openBank(key,restoreRoute=null,replace=false,markOpened=!replace){
     const request=++navigationRequest;
     dismissExamSettings();
+    dismissRename();
     await flush();if(request!==navigationRequest)return false;multiDraft.clear();const loaded=markOpened?await API.request(`/api/banks/${key}/open`,'POST',{}):await API.request(`/api/banks/${key}`);
     if(request!==navigationRequest)return false;
     data=loaded;questions=L.prepareQuestions(data.bank,data.questions);byId=new Map(questions.map(q=>[q.id,q]));
@@ -119,7 +155,7 @@
     const practiced=new Set(Object.values(state.practiceSessionsByKey).flatMap(s=>Object.keys(s.answered||{}))).size;
     const active=state.examSession&&!state.examSession.submittedAt;
     let examError='';try{L.createExam(currentExamBank(),questions);}catch(error){examError=error.message;}
-    app.innerHTML=`<section class="screen"><div class="topline"><p class="eyebrow">${e(data.bank.course||'COURSE')}</p><span class="brand-mark">${questions.length} QUESTIONS / LOCAL STUDY DESK</span></div><div class="home-hero"><div class="hero-copy"><p class="eyebrow">LEARN · PRACTICE · REVIEW</p><h1>${e(data.bank.name)}</h1><p class="hero-intro">${e(data.bank.description||`${t("按材料顺序或乱序复习 ")}${questions.length} ${t("道题，追踪错题与收藏，并完成限时模拟考试。")}`)}</p><p class="hero-note">${t("当前记录：已练习 ")}${practiced} ${t("道 · ")}${wrong} ${t("道错题 · ")}${prone} ${t("道易错题 · ")}${state.favoriteIds.length} ${t("道收藏")}</p><div class="progress-tools"><button data-action="export-progress">${t("导出做题记录")}</button><button data-action="import-progress">${t("导入做题记录")}</button><button data-action="export-bank">${t("导出题库")}</button></div></div><div class="mode-stack"><button class="mode-card" data-action="practice-menu" ${questions.length?'':'disabled'}><strong>${t("练习模式")}</strong><span class="mode-card__english">PRACTICE MODE</span></button><button class="mode-card mode-card--dark" data-action="${active?'resume-exam':'exam-intro'}" ${active||questions.length?'':'disabled'}><strong>${active?t('继续考试'):t('考试模式')}</strong><span class="mode-card__english">${active?'CONTINUE EXAM':'EXAM MODE'}</span></button><button class="mode-card" data-action="statistics"><strong>${t("考试统计")}</strong><span class="mode-card__english">EXAM STATISTICS</span></button>${examError?`<p class="bank-path">${e(examError)}</p>`:''}</div></div>${!questions.length?`<section class="empty-bank"><h2>${t("题库目前为空")}</h2><p>${t("文件夹已创建。将以下提示复制给 Codex，并附上课程材料；题库生成后点击")}“${t("重新载入题库")}”。</p><pre class="skill-prompt">${e(builderPrompt())}</pre><div class="form-actions">${button(t('复制设置提示'),'copy-prompt')}${button(t('重新载入题库'),'reload-bank','',true)}</div></section>`:''}</section>`;
+    app.innerHTML=`<section class="screen"><div class="topline"><p class="eyebrow">${e(data.bank.course||'COURSE')}</p><span class="brand-mark">${questions.length} QUESTIONS / LOCAL STUDY DESK</span></div><div class="home-hero"><div class="hero-copy"><p class="eyebrow">LEARN · PRACTICE · REVIEW</p><div class="bank-title-row"><h1>${e(data.bank.name)}</h1><button class="rename-icon" data-action="rename-bank" data-key="${e(data.key)}" aria-label="${t('修改题库名称')}" title="${t('修改题库名称')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M15 5l4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15z"/></svg></button></div><p class="hero-intro">${e(data.bank.description||`${t("按材料顺序或乱序复习 ")}${questions.length} ${t("道题，追踪错题与收藏，并完成限时模拟考试。")}`)}</p><p class="hero-note">${t("当前记录：已练习 ")}${practiced} ${t("道 · ")}${wrong} ${t("道错题 · ")}${prone} ${t("道易错题 · ")}${state.favoriteIds.length} ${t("道收藏")}</p><div class="progress-tools"><button data-action="export-progress">${t("导出做题记录")}</button><button data-action="import-progress">${t("导入做题记录")}</button><button data-action="export-bank">${t("导出题库")}</button></div></div><div class="mode-stack"><button class="mode-card" data-action="practice-menu" ${questions.length?'':'disabled'}><strong>${t("练习模式")}</strong><span class="mode-card__english">PRACTICE MODE</span></button><button class="mode-card mode-card--dark" data-action="${active?'resume-exam':'exam-intro'}" ${active||questions.length?'':'disabled'}><strong>${active?t('继续考试'):t('考试模式')}</strong><span class="mode-card__english">${active?'CONTINUE EXAM':'EXAM MODE'}</span></button><button class="mode-card" data-action="statistics"><strong>${t("考试统计")}</strong><span class="mode-card__english">EXAM STATISTICS</span></button>${examError?`<p class="bank-path">${e(examError)}</p>`:''}</div></div>${!questions.length?`<section class="empty-bank"><h2>${t("题库目前为空")}</h2><p>${t("文件夹已创建。将以下提示复制给 Codex，并附上课程材料；题库生成后点击")}“${t("重新载入题库")}”。</p><pre class="skill-prompt">${e(builderPrompt())}</pre><div class="form-actions">${button(t('复制设置提示'),'copy-prompt')}${button(t('重新载入题库'),'reload-bank','',true)}</div></section>`:''}</section>`;
   }
   function listFor(mode,group){
     let list=questions;
@@ -267,6 +303,8 @@
     if(a.startsWith('form-')){formMode=a==='form-cancel'?null:a.slice(5);importBundle=null;renderManager();}
     else if(a==='pick-path'){target.disabled=true;try{const result=await API.request('/api/pick-directory','POST',{language:I.language});if(result.path)document.getElementById('bank-path').value=result.path;}finally{target.disabled=false;}}
     else if(a==='pick-package'){target.disabled=true;try{const directory=document.getElementById('bank-path').value.trim();const result=await API.request('/api/pick-bank-package','POST',{directory,language:I.language});if(result.path){importBundle=result.bundle;document.getElementById('bank-package').value='';document.getElementById('import-info').textContent=`${t("已载入：")}${importBundle.bank.name} · ${importBundle.questions.length} ${t("题 · ")}${result.path.split('/').pop()}`;}}finally{target.disabled=false;}}
+    else if(a==='rename-bank')await openRename(d.key);
+    else if(a==='rename-cancel'&&!renameSaving)dismissRename();
     else if(a==='delete-bank'){const bank=banks.find(b=>b.key===d.key);if(bank){document.getElementById('delete-name').textContent=bank.name;document.getElementById('delete-dialog').dataset.key=bank.key;document.getElementById('delete-dialog').showModal();}}
     else if(a==='delete-registration'){
       const chooser=document.getElementById('delete-dialog'),key=chooser.dataset.key;chooser.close();
@@ -325,6 +363,10 @@
     else if(a==='back-to-top')scrollTo({top:0,behavior:'smooth'});
   }
   function languageChrome(){
+    document.getElementById('rename-title').textContent=t('修改题库名称');
+    document.querySelector('#rename-form label').textContent=t('题库名称');
+    renameForm.querySelector('[data-action=rename-cancel]').textContent=t('取消');
+    renameForm.querySelector('[type=submit]').textContent=t('保存');
     document.querySelectorAll('.language-picker [data-language]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.language===I.language))); 
     document.getElementById('exam-settings-open').textContent=t('考试设置');
     if(!sessionInfo)app.textContent=I.language==='en'?'Opening local banks…':'正在打开本地题库…';
@@ -353,7 +395,7 @@
   window.addEventListener('beforeunload',event=>{if(queue?.dirty){event.preventDefault();event.returnValue='';}});
   window.addEventListener('popstate',event=>{(async()=>{
     const request=++navigationRequest;
-    dismissExamSettings();if(dialog.open){confirmCallback=null;dialog.close();}
+    dismissExamSettings();dismissRename();if(dialog.open){confirmCallback=null;dialog.close();}
     await flush();if(request!==navigationRequest)return;
     const dest=event.state;
     if(dest?.bankKey){

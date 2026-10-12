@@ -69,6 +69,8 @@ MESSAGES = {
     '考试记录无效。': 'Invalid exam history record.',
     '同一考试 id 有不同内容。': 'Conflicting contents share an exam ID.',
     '题库登记文件损坏。': 'The bank registry is damaged.',
+    '题库名称不能超过 200 个字符。': 'Bank names must be 200 characters or fewer.',
+    '题库文件已更新，请刷新后再修改名称。': 'The bank files have changed. Refresh before renaming.',
     '题库未登记，请先打开题库文件夹。': 'Bank not registered. Open its folder first.',
     '请选择删除题库记录或删除整个题库。': 'Choose removal from recent banks or entire-bank deletion.',
     '删除操作需要确认。': 'Deletion requires explicit confirmation.',

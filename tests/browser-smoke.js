@@ -17,7 +17,7 @@ const {chromium} = require(process.env.L2E_PLAYWRIGHT_MODULE || 'playwright');
    await page.goto(url);await page.waitForLoadState('networkidle');
    await page.getByRole('button',{name:'创建题库',exact:true}).click();
    assert.equal(await page.getByLabel('题库文件夹路径').inputValue(),'');
-   await page.getByLabel('题库名称',{exact:true}).fill('空题库');
+   await page.locator('#bank-form').getByLabel('题库名称',{exact:true}).fill('空题库');
    await page.getByLabel('题库文件夹路径').fill(path.join(tmp,'empty'));
    await page.getByRole('button',{name:'创建并打开'}).click();
    await page.getByText('题库目前为空').waitFor();

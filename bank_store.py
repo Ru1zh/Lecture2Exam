@@ -370,6 +370,28 @@ class BankStore:
                     pass
             return entries
 
+    def rename(self, key, name, bank_revision):
+        text(name, '题库名称')
+        name = name.strip()
+        require(len(name) <= 200, '题库名称不能超过 200 个字符。')
+        with self.lock, file_lock(self.data_dir / '.registry.lock'), file_lock(self._root(key) / 'records' / '.write.lock'):
+            loaded = self._load_unlocked(key)
+            if bank_revision != loaded['bankRevision']:
+                raise AppError('题库文件已更新，请刷新后再修改名称。', 409)
+            if loaded['bank']['name'] == name:
+                return loaded
+            root = self._root(key)
+            bank = {**loaded['bank'], 'name': name}
+            atomic_write(root / 'bank.json', bank)
+            try:
+                self.registry['banks'][key]['name'] = name
+                atomic_write(self.registry_path, self.registry)
+            except Exception:
+                atomic_write(root / 'bank.json', loaded['bank'], False)
+                self.registry = read_json(self.registry_path)
+                raise
+            return self._load_unlocked(key)
+
     def forget(self, key):
         # Remove only the registry entry; personal folders and records stay intact.
         with self.lock, file_lock(self.data_dir / '.registry.lock'):

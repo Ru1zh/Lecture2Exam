@@ -54,6 +54,7 @@ Lecture2Exam/
 - **导入题库**：将 `{bank,questions}` JSON 包导入新文件夹／空文件夹。已有内容不会覆盖。macOS 的 JSON 选择器从已填写的题库目录打开；目录尚不存在时使用最近的已有父目录，取消选择保留表单。其他平台选择 JSON 文件并填写目录路径。
 - **最近使用的题库**：显示总题量、已练习题数（当前有效作答按题目去重）和考试记录次数，按最近打开时间从新到旧排列；可按名称片段搜索，不区分英文字母大小写，并显示所有匹配结果。查看列表／搜索不修改打开时间。旧登记没有时间戳时，下一次打开后开始记录。
 - **删除题库记录**：直接从最近列表移除登记，不需要确认，题库文件和做题记录均保留；之后可重新打开原文件夹。
+- **重命名**：在题库列表点击“重命名”，或在题库首页点击名称旁的铅笔图标。保存后同步更新名称，保留文件夹、题库标识和做题记录。其他打开旧版本的页面需刷新后继续保存记录。
 - **删除整个题库**：需要确认，将整个题库及做题记录移入应用内回收站，从最近列表移除。
 - **回收站**：在题库列表页打开，可恢复或彻底删除。恢复会放回原文件夹，保留课程材料、练习记录和历史试卷；原位置已有文件时会提示冲突，不覆盖。彻底删除需要再次确认，删除后无法恢复。此前保存在 `data/deleted/<archiveId>/` 的整库归档也会显示在回收站；回收站中的文件仍占磁盘空间。
 - 首屏只有通用的多格式示例（8 题）。示例中的来源文件和定位用于展示格式，不代表已核查真实课程材料。
@@ -119,6 +120,7 @@ L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-manager.js
 L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-exam-settings.js
 L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-presets-flags.js
 L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-trash.js
+L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-rename.js
 ```
 
 运行仅依赖 Python；Node／Playwright 仅用于开发测试。后端为 `bank_store.py`、`server.py` 和 `bank_cli.py`；前端为原生 HTML/CSS/JavaScript，`web/i18n.js` 管理界面语言。

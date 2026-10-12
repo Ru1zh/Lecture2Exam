@@ -189,6 +189,10 @@ end run'''
                     data = self.body()
                     self.send_json(store.delete(key, data.get('scope'), data.get('confirmed')))
                     return
+                if method == 'POST' and len(parts) == 4 and parts[3] == 'rename':
+                    data = self.body()
+                    self.send_json(store.rename(key, data.get('name'), data.get('bankRevision')))
+                    return
                 if method == 'PUT' and len(parts) == 4 and parts[3] == 'state':
                     data = self.body()
                     self.send_json(store.save(key, data.get('revision'), data.get('state'), data.get('bankRevision')))

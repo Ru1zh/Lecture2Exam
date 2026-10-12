@@ -54,6 +54,7 @@ Each bank has an independent folder. Switching back to an existing bank does not
 - **Import bank:** import a `{bank,questions}` JSON package into a new or empty folder. Existing contents are not overwritten. On macOS, the native JSON picker starts at the entered bank directory or its closest existing parent. Canceling preserves the form. Other platforms use a browser file input and typed directory path.
 - **Recent banks:** show total questions, unique practiced questions with valid current answers, and exam-history count. Banks sort by most recent explicit opening. Case-insensitive partial-name search shows all matching banks. Listing/searching does not change opening times. Older registrations without a timestamp start tracking on their next opening.
 - **Remove bank from recents:** immediately removes only its registration, without confirmation. Questions and learning records stay intact; reopen its original folder later.
+- **Rename:** use Rename in the bank list or the pencil beside the name on the bank home page. Saving updates the displayed name while retaining the folder, bank ID and learning records. Other pages holding the old bank version must refresh before saving records.
 - **Delete entire bank:** requires confirmation and moves the whole bank and its learning records to the app's recycle bin, removing it from recents.
 - **Recycle bin:** open it from the bank manager to restore or permanently delete a bank. Restoration returns all materials, records and historical papers to the original folder. An occupied location is rejected without overwriting files. Permanent deletion requires another confirmation and cannot be undone. Previous whole-bank archives in `data/deleted/<archiveId>/` also appear here. Recycled files still use disk space.
 - The only bundled sample is a generic eight-question, multi-format bank. Its source names and locators demonstrate the format and do not represent verified course materials.
@@ -120,6 +121,7 @@ L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-manager.js
 L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-exam-settings.js
 L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-presets-flags.js
 L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-trash.js
+L2E_PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-rename.js
 ```
 
 Only Python is needed at runtime. Node / Playwright are development tools. Backend: `bank_store.py`, `server.py`, `bank_cli.py`. Frontend: native HTML/CSS/JavaScript, with interface language strings in `web/i18n.js`.

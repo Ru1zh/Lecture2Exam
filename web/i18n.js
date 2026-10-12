@@ -3,6 +3,13 @@
   'use strict';
   let language='zh';try{language=localStorage.getItem('lecture2exam-language')==='en'?'en':'zh';}catch(_){}
   const english={
+  "重命名": "Rename",
+  "重命名 ": "Rename ",
+  "修改题库名称": "Edit bank name",
+  "题库名称": "Bank name",
+  "保存": "Save",
+  "题库名称不能为空。": "Bank name cannot be empty.",
+  "题库名称已更新。": "Bank name updated.",
   "回收站": "Recycle bin",
   "删除的题库及做题记录保存在这里，可恢复到原文件夹。彻底删除后无法恢复。": "Deleted banks and learning records are kept here. Restore them to their original folder, or delete them permanently.",
   "删除时间：": "Deleted: ",
